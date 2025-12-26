@@ -23,13 +23,21 @@ export function Note({
   const ref = useRef<Mesh>(null!)
 
   useFrame(() => {
-    if (!ref.current) return
+  if (!ref.current) return
 
-    // Move slightly forward when focused
-    ref.current.position.z = focused
-      ? position[2] + 0.4
-      : position[2]
-  })
+  // Reset transform
+  ref.current.position.set(...position)
+  ref.current.scale.setScalar(1)
+
+  if (focused) {
+    // Move forward in the note's own direction
+    ref.current.translateZ(1.2)
+
+    // Scale up slightly
+    ref.current.scale.setScalar(1.15)
+  }
+})
+
 
   return (
     <mesh

@@ -4,6 +4,7 @@ import { Canvas } from '@react-three/fiber'
 import { PerspectiveCamera } from '@react-three/drei'
 import { Room } from './Room'
 import { CameraController } from './CameraController'
+import { useThree } from '@react-three/fiber'
 
 type SceneProps = {
   rotationIndex: number
@@ -31,6 +32,18 @@ export default function Scene({
 
       <ambientLight intensity={1.5} />
       <directionalLight position={[2, 4, 2]} intensity={2} />
+
+      {focusedNote && (
+        <mesh position={[0, 0, -0.5]}>
+          <planeGeometry args={[10, 10]} />
+          <meshStandardMaterial
+            color="black"
+            transparent
+            opacity={0.45}
+          />
+        </mesh>
+      )}
+
 
       <Room
         focusedNote={focusedNote}

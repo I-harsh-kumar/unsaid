@@ -34,18 +34,6 @@ export function Room({
   return (
     <group>
 
-      {focusedNote && (
-      <mesh position={[0, 0, 0]}>
-        <planeGeometry args={[20, 20]} />
-        <meshStandardMaterial
-          color="black"
-          transparent
-          opacity={0.35}
-        />
-      </mesh>
-    )}
-
-
       {/* Walls */}
       <Wall position={[0, 0, -5]} />
       <Wall position={[0, 0, 5]} rotation={[0, Math.PI, 0]} />
@@ -98,11 +86,7 @@ export function Room({
       />
 
 
-      {/* Direction markers (temporary) */}
-      <Marker position={[0, 0, -4.8]} />
-      <Marker position={[0, 0, 4.8]} />
-      <Marker position={[-4.8, 0, 0]} />
-      <Marker position={[4.8, 0, 0]} />
+     
     </group>
   )
 }
