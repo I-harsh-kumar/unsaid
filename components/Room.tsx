@@ -1,92 +1,68 @@
 'use client'
 
-import { MeshProps } from '@react-three/fiber'
 import { DoubleSide } from 'three'
 import { Note } from './Note'
-
-function Marker({ position }: { position: [number, number, number] }) {
-  return (
-    <mesh position={position}>
-      <boxGeometry args={[0.3, 0.3, 0.3]} />
-      <meshStandardMaterial color="hotpink" />
-    </mesh>
-  )
-}
-
-function Wall(props: MeshProps) {
-  return (
-    <mesh {...props}>
-      <planeGeometry args={[10, 5]} />
-      <meshStandardMaterial color="white" side={DoubleSide} />
-    </mesh>
-  )
-}
-
+import type { WallId, NoteData } from './Scene'
 
 export function Room({
-  focusedNote,
-  setFocusedNote,
+  notes,
+  onCreateNote,
 }: {
-  focusedNote: string | null
-  setFocusedNote: (id: string) => void
+  notes: NoteData[]
+  onCreateNote: (
+    wall: WallId,
+    position: [number, number, number],
+    rotation: [number, number, number]
+  ) => void
 }) {
+  function Wall({
+    wallId,
+    position,
+    rotation,
+  }: {
+    wallId: WallId
+    position: [number, number, number]
+    rotation?: [number, number, number]
+  }) {
+    return (
+      <mesh
+        position={position}
+        rotation={rotation}
+        onContextMenu={(e) => {
+          e.stopPropagation()
+
+          const p = e.point
+
+          const wallRotation: Record<WallId, [number, number, number]> = {
+            front: [0, 0, 0],
+            back: [0, Math.PI, 0],
+            left: [0, Math.PI / 2, 0],
+            right: [0, -Math.PI / 2, 0],
+          }
+
+          onCreateNote(wallId, [p.x, p.y, p.z], wallRotation[wallId])
+        }}
+      >
+        <planeGeometry args={[10, 5]} />
+        <meshStandardMaterial color="white" side={DoubleSide} />
+      </mesh>
+    )
+  }
 
   return (
     <group>
+      <Wall wallId="front" position={[0, 0, -5]} />
+      <Wall wallId="back" position={[0, 0, 5]} rotation={[0, Math.PI, 0]} />
+      <Wall wallId="left" position={[-5, 0, 0]} rotation={[0, Math.PI / 2, 0]} />
+      <Wall wallId="right" position={[5, 0, 0]} rotation={[0, -Math.PI / 2, 0]} />
 
-      {/* Walls */}
-      <Wall position={[0, 0, -5]} />
-      <Wall position={[0, 0, 5]} rotation={[0, Math.PI, 0]} />
-      <Wall position={[-5, 0, 0]} rotation={[0, Math.PI / 2, 0]} />
-      <Wall position={[5, 0, 0]} rotation={[0, -Math.PI / 2, 0]} />
-
-      {/* Floor */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -2.5, 0]}>
-        <planeGeometry args={[10, 10]} />
-        <meshStandardMaterial color="white" side={DoubleSide} />
-      </mesh>
-
-      {/* Ceiling */}
-      <mesh rotation={[Math.PI / 2, 0, 0]} position={[0, 2.5, 0]}>
-        <planeGeometry args={[10, 10]} />
-        <meshStandardMaterial color="white" side={DoubleSide} />
-      </mesh>
-
-      {/* Notes */}
-      <Note
-      id="front"
-      position={[0, 0, -4.85]}
-      rotation={[0, 0, 0]}
-      focused={focusedNote === null || focusedNote === 'front'}
-      onClick={setFocusedNote}
-      />
-
-      <Note
-        id="right"
-        position={[4.85, 0, 0]}
-        rotation={[0, -Math.PI / 2, 0]}
-        focused={focusedNote === null || focusedNote === 'right'}
-        onClick={setFocusedNote}
-      />
-
-      <Note
-        id="back"
-        position={[0, 0, 4.85]}
-        rotation={[0, Math.PI, 0]}
-        focused={focusedNote === null || focusedNote === 'back'}
-        onClick={setFocusedNote}
-      />
-
-      <Note
-        id="left"
-        position={[-4.85, 0, 0]}
-        rotation={[0, Math.PI / 2, 0]}
-        focused={focusedNote === null || focusedNote === 'left'}
-        onClick={setFocusedNote}
-      />
-
-
-     
+      {notes.map((note) => (
+        <Note
+          key={note.id}
+          position={note.position}
+          rotation={note.rotation}
+        />
+      ))}
     </group>
   )
 }

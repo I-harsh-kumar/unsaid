@@ -2,40 +2,47 @@
 
 import { useFrame, useThree } from '@react-three/fiber'
 import { useRef } from 'react'
-import { MathUtils, Vector3 } from 'three'
+import { Vector3 } from 'three'
+import type { NoteData } from './Scene'
 
 export function CameraController({
-  targetRotation,
+  focusedNote,
   zoomed,
 }: {
-  targetRotation: number
+  focusedNote: NoteData | null
   zoomed: boolean
 }) {
   const { camera } = useThree()
 
-  const currentRotation = useRef(0)
-  const currentPosition = useRef(new Vector3(0, 0, 0))
+  const targetPosition = useRef(new Vector3())
+  const lookAtTarget = useRef(new Vector3())
 
   useFrame(() => {
-    // Smooth rotation
-    currentRotation.current = MathUtils.lerp(
-      currentRotation.current,
-      targetRotation,
-      0.08
-    )
-    camera.rotation.y = currentRotation.current
+    // 🟢 DEFAULT CAMERA (room view)
+    if (!focusedNote || !zoomed) {
+      targetPosition.current.set(0, 0, 10)
+      lookAtTarget.current.set(0, 0, 0)
+    } 
+    // 🔵 FOCUSED NOTE CAMERA
+    else {
+      const notePos = new Vector3(...focusedNote.position)
 
-    // Determine forward direction
-    const direction = new Vector3(0, 0, -1)
-      .applyAxisAngle(new Vector3(0, 1, 0), currentRotation.current)
+      // direction the note is facing
+      const forward = new Vector3(0, 0, 1).applyEuler({
+        x: focusedNote.rotation[0],
+        y: focusedNote.rotation[1],
+        z: focusedNote.rotation[2],
+        order: 'XYZ',
+      })
 
-    const targetPosition = zoomed
-      ? direction.multiplyScalar(2.5)
-      : new Vector3(0, 0, 0)
+      // camera slightly in front of note
+      targetPosition.current.copy(notePos).add(forward.multiplyScalar(1.8))
+      lookAtTarget.current.copy(notePos)
+    }
 
-    // Smooth position
-    currentPosition.current.lerp(targetPosition, 0.08)
-    camera.position.copy(currentPosition.current)
+    // 🎥 Smooth camera movement
+    camera.position.lerp(targetPosition.current, 0.08)
+    camera.lookAt(lookAtTarget.current)
   })
 
   return null
